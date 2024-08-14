@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Map of Employment Land Allocations and Housing Sites</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        #map {
+            height: 100vh;  /* Full height */
+            width: 100vw;   /* Full width */
+        }
+        #controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            max-width: 300px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        #filter {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+        }
+        .checkbox-container input {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <label for="filter">Filter: </label>
+        <div id="filter">
+            <!-- Checkboxes will be populated dynamically -->
+        </div>
+        <input type="file" id="fileInput" accept=".geojson" />
+    </div>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        var map = L.map('map').setView([52.0, 1.0], 10);  // Center the map to Suffolk
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Load Suffolk border GeoJSON from GitHub
+        var suffolkGeoJsonUrl = "https://raw.githubusercontent.com/edshorthouse/suffolkmap/ea5ec2bc164e576ae0bd6ecd13672b5950583c9e/suffolk.geojson";
+
+        fetch(suffolkGeoJsonUrl)
+            .then(response => response.json())
+            .then(geojsonData => {
+                var suffolkLayer = L.geoJSON(geojsonData, {
+                    style: {
+                        color: 'black',   // Black border
+                        weight: 2,        // Border thickness
+                        opacity: 1,       // Border opacity
+                        fillOpacity: 0    // Transparent center
+                    }
+                }).addTo(map);
+
+                // Fit the map to the Suffolk borders
+                map.fitBounds(suffolkLayer.getBounds());
+            })
+            .catch(error => console.error('Error loading Suffolk GeoJSON:', error));
+
+        var geojsonLayer;
+        var geojsonData;
+
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            var file = event.target.files[0];
+            if (file) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    geojsonData = JSON.parse(e.target.result);
+                    console.log('GeoJSON data loaded:', geojsonData); // Debugging: Log the loaded data
+                    populateCheckboxes(geojsonData);
+                    updateMap();
+                };
+                reader.readAsText(file);
+            } else {
+                console.error('No file selected');
+            }
+        });
+
+        function populateCheckboxes(data) {
+            var filterDiv = document.getElementById('filter');
+            var uniqueOptions = new Set();
+
+            // Assume we're interested in 'land_use' property
+            data.features.forEach(function(feature) {
+                if (feature.properties.land_use) {
+                    uniqueOptions.add(feature.properties.land_use);
+                }
+            });
+
+            // Clear existing checkboxes
+            filterDiv.innerHTML = '';
+
+            // Populate the filter div with checkboxes
+            uniqueOptions.forEach(function(option) {
+                var checkboxContainer = document.createElement('div');
+                checkboxContainer.className = 'checkbox-container';
+
+                var checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.value = option;
+                checkbox.id = `checkbox-${option}`;
+                checkbox.checked = true;
+
+                var label = document.createElement('label');
+                label.htmlFor = `checkbox-${option}`;
+                label.innerHTML = option;
+
+                checkboxContainer.appendChild(checkbox);
+                checkboxContainer.appendChild(label);
+
+                filterDiv.appendChild(checkboxContainer);
+            });
+
+            // Add event listener for checkboxes
+            filterDiv.querySelectorAll('input[type="checkbox"]').forEach(function(checkbox) {
+                checkbox.addEventListener('change', updateMap);
+            });
+        }
+
+        function updateMap() {
+            var selectedOptions = Array.from(document.querySelectorAll('#filter input[type="checkbox"]:checked')).map(checkbox => checkbox.value);
+
+            if (geojsonLayer) {
+                map.removeLayer(geojsonLayer);
+            }
+
+            geojsonLayer = L.geoJSON(geojsonData, {
+                filter: function(feature) {
+                    if (selectedOptions.length === 0) {
+                        return true;
+                    } else {
+                        return selectedOptions.includes(feature.properties.land_use);
+                    }
+                },
+                pointToLayer: function (feature, latlng) {
+                    return L.marker(latlng);
+                },
+                onEachFeature: function (feature, layer) {
+                    var popupContent = "<b>Properties:</b><br>";
+                    for (var key in feature.properties) {
+                        popupContent += key + ": " + feature.properties[key] + "<br>";
+                    }
+                    layer.bindPopup(popupContent);
+                }
+            }).addTo(map);
+
+            if (geojsonLayer.getLayers().length > 0) {
+                map.fitBounds(geojsonLayer.getBounds());
+            } else {
+                console.error('No features added to the map');
+            }
+        }
+    </script>
+</body>
+</html>
