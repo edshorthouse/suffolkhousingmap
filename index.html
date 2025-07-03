@@ -47,7 +47,6 @@
         <div id="filter">
             <!-- Checkboxes will be populated dynamically -->
         </div>
-        <input type="file" id="fileInput" accept=".geojson" />
     </div>
     <div id="map"></div>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -60,6 +59,16 @@
 
         // Load Suffolk border GeoJSON from GitHub
         var suffolkGeoJsonUrl = "https://raw.githubusercontent.com/edshorthouse/suffolkmap/ea5ec2bc164e576ae0bd6ecd13672b5950583c9e/suffolk.geojson";
+
+        // === Load GeoJSON automatically ===
+        fetch('./data.geojson')          // <-   same folder as index.html
+          .then(response => response.json())
+          .then(gj => {
+            geojsonData = gj;            // 1. stash globally if other functions need it
+            populateCheckboxes();        // 2. rebuild your filter UI
+            updateMap();                 // 3. draw the layer
+          })
+          .catch(err => console.error('Could not load data.geojson:', err));
 
         fetch(suffolkGeoJsonUrl)
             .then(response => response.json())
@@ -80,22 +89,6 @@
 
         var geojsonLayer;
         var geojsonData;
-
-        document.getElementById('fileInput').addEventListener('change', function(event) {
-            var file = event.target.files[0];
-            if (file) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    geojsonData = JSON.parse(e.target.result);
-                    console.log('GeoJSON data loaded:', geojsonData); // Debugging: Log the loaded data
-                    populateCheckboxes(geojsonData);
-                    updateMap();
-                };
-                reader.readAsText(file);
-            } else {
-                console.error('No file selected');
-            }
-        });
 
         function populateCheckboxes(data) {
             var filterDiv = document.getElementById('filter');
