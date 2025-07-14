@@ -129,7 +129,21 @@
     /* ==================================================
        4. LOAD GEOJSON & BUILD UI
        ================================================== */
-    fetch('./')
+    
+Promise.all([
+  fetch('Ipswich.geojson').then(r => r.json()),
+  fetch('West_Suffolk.geojson').then(r => r.json()),
+  fetch('East_Suffolk.geojson').then(r => r.json()),
+  fetch('Babergh_and_Mid_Suffolk.geojson').then(r => r.json())
+]).then(datasets => {
+  geojsonData = {
+    type: "FeatureCollection",
+    features: datasets.flatMap(d => d.features)
+  };
+  populateCheckboxes(geojsonData);
+  updateMap();
+}).catch(e => console.error("Failed to load one or more district files", e));
+
       .then(r=>r.ok?r.json():Promise.reject(r.statusText))
       .then(gj=>{
         geojsonData = gj;
