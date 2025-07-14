@@ -70,85 +70,8 @@
        2. SUFFOLK OUTLINE (thick black border, non‑clickable)
        ================================================== */
     const boundaryURL = 'https://raw.githubusercontent.com/EdShorthouse/suffolkmap/main/suffolk.geojson';
-    fetch(boundaryURL)
-      .then(r=>r.ok?r.json():Promise.reject(r.statusText))
-      .then(gj=>{
-        const boundary = L.geoJSON(gj, {
-          style:{color:'#000',weight:3,fillOpacity:0},
-          interactive:false              // ← so it never blocks clicks
-        }).addTo(map);
-        map.fitBounds(boundary.getBounds(), {padding:[20,20]});
-      })
-      .catch(e=>console.warn('Boundary load failed',e));
-
-    /* ==================================================
-       3. DATA, PALETTE & ORDERED CATEGORIES
-       ================================================== */
-    let geojsonData, geojsonLayer;
-
-    // Ordered list for the checkbox UI
-    const orderedCategories = [
-      'Residential',
-      'Employment',
-      'Mixed Use',
-      'Land with Planning Permission',
-      'Land allocated for open space',
-      'Land allocated for retail use',
-      'Land allocated for Car Park',
-      'Land allocated for community use',
-      'Land with the potential for housing-led redevelopment',
-      'Strategic Allocation',
-      'Land allocated for Leisure Use',
-      'Allocation: future housing growth & infrastructure improvement',
-      'Land allocated for Education and ancillary Use/ Waterfront Use',
-      'Land allocated for Park and Ride',
-      'Land allocated for extension to Country Park',
-      'Other'
-    ];
-
-    // Colour palette per category
-    const palette = {
-      'Residential':'#e31a1c',                      // red
-      'Employment':'#1f78b4',                       // blue
-      'Mixed Use':'#33a02c',                        // green
-      'Land with Planning Permission':'#6a3d9a',    // purple
-      'Land allocated for open space':'#b2df8a',    // light green
-      'Land allocated for retail use':'#fdbf6f',    // peach
-      'Land allocated for Car Park':'#ff7f00',      // orange
-      'Land allocated for community use':'#cab2d6', // lavender
-      'Land with the potential for housing-led redevelopment':'#8c6d31',
-      'Strategic Allocation':'#009688',             // teal
-      'Land allocated for Leisure Use':'#b15928',
-      'Allocation: future housing growth & infrastructure improvement':'#a6cee3',
-      'Land allocated for Education and ancillary Use/ Waterfront Use':'#ff9f4d',
-      'Land allocated for Park and Ride':'#8c564b',
-      'Land allocated for extension to Country Park':'#dede00',
-      'Other':'#999999'
-    };
-
-    /* ==================================================
-       4. LOAD GEOJSON & BUILD UI
-       ================================================== */
-    
-Promise.all([
-  fetch('Ipswich.geojson').then(r => r.json()),
-  fetch('West_Suffolk.geojson').then(r => r.json()),
-  fetch('East_Suffolk.geojson').then(r => r.json()),
-  fetch('Babergh_and_Mid_Suffolk.geojson').then(r => r.json())
-]).then(datasets => {
-  geojsonData = {
-    type: "FeatureCollection",
-    features: datasets.flatMap(d => d.features)
-  };
-  populateCheckboxes(geojsonData);
-  updateMap();
-}).catch(e => console.error("Failed to load one or more district files", e));
-
-      .then(r=>r.ok?r.json():Promise.reject(r.statusText))
-      .then(gj=>{
-        geojsonData = gj;
-        populateCheckboxes(gj);
-        updateMap();
+    fetch(boundaryURL)  updateMap();
+}).catch(e => console.error("Failed to load one or more district files", e));        updateMap();
       })
       .catch(e=>console.error('Could not load ',e));
 
