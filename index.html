@@ -79,7 +79,7 @@ fetch(boundaryURL)
       interactive:false              // ← so it never blocks clicks
     }).addTo(map);
     map.fitBounds(boundary.getBounds(), {padding:[20,20]});
-
+  })
   .catch(e => console.warn('Boundary load failed', e));
 
     /* ==================================================
