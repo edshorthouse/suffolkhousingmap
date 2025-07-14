@@ -129,14 +129,14 @@
     /* ==================================================
        4. LOAD GEOJSON & BUILD UI
        ================================================== */
-    fetch('./data.geojson')
+    fetch('./REMOVED_DATA_GEOJSON')
       .then(r=>r.ok?r.json():Promise.reject(r.statusText))
       .then(gj=>{
         geojsonData = gj;
         populateCheckboxes(gj);
         updateMap();
       })
-      .catch(e=>console.error('Could not load data.geojson',e));
+      .catch(e=>console.error('Could not load REMOVED_DATA_GEOJSON',e));
 
     /* ---------------- UI: checkbox list ---------------- */
     function populateCheckboxes(data){
