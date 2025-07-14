@@ -138,7 +138,7 @@ Promise.all([
 ]).then(datasets => {
   geojsonData = {
     type: "FeatureCollection",
-    features: datasets.flatMap(d => d.features)
+    features: [].concat(...datasets.map(d => d.features))
   };
   populateCheckboxes(geojsonData);
   updateMap();
